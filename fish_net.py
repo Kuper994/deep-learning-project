@@ -59,7 +59,6 @@ class FishNet:
         # assign cls head to model
         self.model.head.classification_head.cls_logits = cls_logits
 
-
         # Decay LR by a factor of 0.1 every 7 epochs
         # exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=10, gamma=0.1)
 
@@ -104,9 +103,10 @@ class FishNet:
                 if true_box[1] == c:
                     ground_truths.append(true_box)
 
-            amount_bboxes = Counter([gt[0] for gt in ground_truths])
+            amount_bboxes_ = Counter([gt[0] for gt in ground_truths])
+            amount_bboxes = dict()
 
-            for key, val in amount_bboxes.items():
+            for key, val in amount_bboxes_.items():
                 amount_bboxes[key] = torch.zeros(val)
 
             TP = torch.zeros((len(detections)))
@@ -168,7 +168,8 @@ class FishNet:
         map_per_th = {}
         for iou_threshold in [0.1, 0.3, 0.5, 0.8]:
             print('threshold: ', iou_threshold)
-            average_precisions = FishNet.get_avg_precisions(all_ground_truths, all_detections, iou_threshold, num_classes, eps)
+            average_precisions = FishNet.get_avg_precisions(all_ground_truths, all_detections, iou_threshold,
+                                                            num_classes, eps)
             map_per_th[iou_threshold] = sum(average_precisions) / (len(average_precisions) + eps)
 
         return map_per_th
@@ -252,7 +253,7 @@ class FishNet:
                     running_loss += loss_sum.item() * len(inputs)
             # scheduler.step()
 
-            epoch_loss = running_loss / data_loaders.dataset_sizes['train']
+            epoch_loss = running_loss / self.dataloaders.dataset_sizes['train']
 
             val_map_dict = self.eval_model('val')
             test_map_dict = self.eval_model('test')
@@ -272,6 +273,23 @@ class FishNet:
         # load best model weights
         self.model.load_state_dict(best_model_wts)
         return self.model, train_losses, val_maps, test_maps
+
+
+def train_fishnet(data_filename: str, data_dir: str = 'raw_data', frames_dir: str = 'frames',
+                  is_converted: bool = False, data_types: int = 0, use_augs: bool = False, num_augs: int = 10,
+                  num_epochs: int = 25, output_file: str = '', learning_rate: float = 1e-3):
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    df_path = os.path.join(frames_dir, data_filename)
+    if not os.path.exists(df_path):
+        prepare_data(data_dir=data_dir, frames_dir=frames_dir, is_converted=is_converted,
+                     data_types=data_types, create_augs=use_augs, num_augs=num_augs,
+                     to_create_frames=True, to_create_bg_frames=True)
+    train_path = 'augs_data.csv' if use_augs else 'train.csv'
+    data_loaders = FishDataLoaders(frames_dir=frames_dir, train_path=train_path)
+    fishnet = FishNet(dataloaders=data_loaders, num_classes=data_loaders.num_classes)
+    fishnet.train_model(num_epochs=num_epochs, learning_rate=learning_rate)
+    if output_file:
+        torch.save(fishnet.model, output_file)
 
 
 if __name__ == '__main__':
@@ -294,16 +312,10 @@ if __name__ == '__main__':
     # Read arguments from command line
     args = parser.parse_args()
 
-    filename = 'data.csv' if args.data_types == 1 else 'background.csv' if args.data_types == 2 \
-        else 'data_and_background.csv'
-    df_path = os.path.join(args.frames_dir, filename)
-    if not os.path.exists(df_path):
-        prepare_data(data_dir=args.data_dir, frames_dir=args.frames_dir, is_converted=args.is_converted,
-                     data_types=args.data_types, create_augs=args.use_augs, num_augs=args.num_augs,
-                     to_create_frames=True, to_create_bg_frames=True)
-    train_path = 'augs_data.csv' if args.use_augs else 'train.csv'
-    data_loaders = FishDataLoaders(frames_dir=args.frames_dir, train_path=train_path)
-    fishnet = FishNet(dataloaders=data_loaders, num_classes=data_loaders.num_classes)
-    fishnet.train_model(num_epochs=args.num_epochs)
-    if args.output_file:
-        torch.save(fishnet.model, args.output_file)
+    filename = 'data.csv' if args.data_types == 1 else 'background.csv' \
+        if args.data_types == 2 else 'data_and_background.csv'
+
+    train_fishnet(data_filename=filename, data_dir=args.data_dir, frames_dir=args.frames_dir,
+                  is_converted=args.is_converted, data_types=args.data_types, use_augs=args.use_augs,
+                  num_augs=args.num_augs, num_epochs=args.num_epochs, output_file=args.output_file,
+                  learning_rate=args.lr)

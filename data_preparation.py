@@ -46,25 +46,26 @@ LAST_FRAME_ORIG = 31785
 
 def save_frames_to_file(video_path: str, frames_dir: str, points_ids: List[str], frames: List[str],
                         fish_codes: List[str], fish_stages: List[str], bg: bool = False):
-    # if not fish_codes:  # it's a background image, and it is saved differently
-    #     save_frame_to_file(points_ids, frames, video_path)
     vid_cap = skvideo.io.vreader(video_path)
     count = 0
-    for point_id, frame_num, fish_code, fish_stage in zip(points_ids, frames, fish_codes, fish_stages):
-        point_dirname = f'{fish_stage}_{fish_code}' if not bg else 'background'
-        point_dir = os.path.join(frames_dir, point_dirname)
-        os.makedirs(point_dir, exist_ok=True)
-        point_path = os.path.join(point_dir, point_id + '.jpg')
-        if os.path.exists(point_path):
-            return
-        print('Saving:', point_id)
-        for frame in vid_cap:
-            if count == frame_num:
-                writer = skvideo.io.FFmpegWriter(point_path)
-                writer.writeFrame(frame)
-                writer.close()
-                break
-            count += 1
+    try:
+        for point_id, frame_num, fish_code, fish_stage in zip(points_ids, frames, fish_codes, fish_stages):
+            point_dirname = f'{fish_stage}_{fish_code}' if not bg else 'background'
+            point_dir = os.path.join(frames_dir, point_dirname)
+            os.makedirs(point_dir, exist_ok=True)
+            point_path = os.path.join(point_dir, point_id + '.jpg')
+            if os.path.exists(point_path):
+                return
+            print('Saving:', point_id)
+            for frame in vid_cap:
+                if count == frame_num:
+                    writer = skvideo.io.FFmpegWriter(point_path)
+                    writer.writeFrame(frame)
+                    writer.close()
+                    break
+                count += 1
+    except ValueError:
+        pass
 
 
 def save_background(video_name: str, video_path: str, frames_dir: str, start_frame: int = 10000,
@@ -74,12 +75,13 @@ def save_background(video_name: str, video_path: str, frames_dir: str, start_fra
     point_ids = [video_name + '_' + str(frame) for frame in frame_numbers]
     sp_codes = stages = [''] * len(point_ids)
     save_frames_to_file(video_path=video_path, frames_dir=frames_dir,
-                        points_ids=point_ids, frames=frame_numbers, fish_codes=sp_codes, fish_stages=stages)
+                        points_ids=point_ids, frames=frame_numbers, fish_codes=sp_codes, fish_stages=stages,
+                        bg=True)
 
 
 def create_frames(video_dir: str, frames_dir: str, tags: Dict[str, Dict], converted: bool = True):
     for experiment_name, experiment_dict in tags.items():
-        if not os.path.exists(video_dir + experiment_name):
+        if not os.path.exists(os.path.join(video_dir, experiment_name)):
             continue
         print("Experiment name:", experiment_name)
         for video_key, video_dict in experiment_dict.items():
@@ -110,6 +112,7 @@ def create_bg_frames(video_dir: str, frames_dir: str):
         'israchz040221C', 'isrrosh071020B']
     bg_videos = ['lGOPR', 'rGOPR', 'raissrosh', 'rbissrosh', 'raisrsdot201119B', 'raisrnaha141119A', 'rbisrsdot201119B',
                  'rbisrnaha141119A', 'raisrnaha121119A', 'rbisrnaha121119A']
+    os.makedirs(os.path.join(frames_dir, 'background'), exist_ok=True)
     for experiment_name in experiments:
         experiment_path = os.path.join(video_dir, experiment_name)
         if not os.path.exists(experiment_path):
@@ -121,7 +124,7 @@ def create_bg_frames(video_dir: str, frames_dir: str):
             video_path = os.path.join(video_dir, experiment_name, video_name)
             video_basename = os.path.splitext(video_name)[0]
             save_background(
-                video_basename, video_path, frames_dir=frames_dir, start_frame=5000, step=100, max_num_frames=1)
+                video_basename, video_path, frames_dir=frames_dir, start_frame=12000, step=100, max_num_frames=3)
 
 
 def create_tags_json(data_dir: str):
@@ -280,7 +283,7 @@ def add_augmentations(frames_dir: str, num_augs=10):
             aug_df = pd.DataFrame(bbs_aug, columns=['x1', 'y1', 'x2', 'y2'])
             aug_df['label'] = image_df['label'].iloc[0] if len(image_df) == 1 else list(image_df['label'])
             aug_df['species'] = image_df['species'].iloc[0] if len(image_df) == 1 else list(image_df['species'])
-            aug_df['origin'] = image_df['origin'].iloc[0] if len(image_df) == 1 else list(image_df['origin'])
+            # aug_df['origin'] = image_df['origin'].iloc[0] if len(image_df) == 1 else list(image_df['origin'])
             aug_df['image_id'] = image_df['image_id'].iloc[0] + '_' + str(i)
             aug_df['frame_path'] = aug_path
             augs_df = pd.concat([augs_df, aug_df])
@@ -294,7 +297,7 @@ def prepare_data(data_dir: str = 'raw_data', frames_dir: str = 'frames', is_conv
                  to_create_bg_frames: bool = False):
     create_tags_json(data_dir=data_dir)
 
-    with open(os.path.join(data_dir, 'labels.json'), 'w+') as f:
+    with open(os.path.join(data_dir, 'labels.json')) as f:
         tags = json.load(f)
 
     os.makedirs(data_dir, exist_ok=True)
