@@ -317,7 +317,7 @@ def prepare_data(data_dir: str = 'raw_data', frames_dir: str = 'frames', is_conv
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-d', '--data-dir', help='Raw Data Directory Name', default='raw_data')
+    parser.add_argument('-d', '--data-dir', help='Raw Data Directory Name', required=True)
     parser.add_argument('-f', '--frames-dir', help='Frames Directory Name', default='frames')
     parser.add_argument('-l', '--labels-dir', help='Labels Directory Name', default='labels')
     parser.add_argument('--create-frames', help='Extract the relevant frames from the videos', action='store_true')
