@@ -213,6 +213,8 @@ class FishNet:
         return map_per_th
 
     def train_model(self, num_epochs: int = 25, learning_rate: float = 1e-3):
+        print("device is:", DEVICE)
+
         optimizer = \
             optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=learning_rate, amsgrad=True)
         best_model_wts = copy.deepcopy(self.model.state_dict())
@@ -277,8 +279,9 @@ class FishNet:
 
 def train_fishnet(data_filename: str, data_dir: str = 'raw_data', frames_dir: str = 'frames',
                   is_converted: bool = False, data_types: int = 0, use_augs: bool = False, num_augs: int = 10,
-                  num_epochs: int = 25, output_file: str = '', learning_rate: float = 1e-3):
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+                  num_epochs: int = 25, output_file: str = '', learning_rate: float = 1e-3, trainable_layers: int = 2):
+    if output_file and os.path.dirname(output_file):
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
     df_path = os.path.join(frames_dir, data_filename)
     if not os.path.exists(df_path):
         prepare_data(data_dir=data_dir, frames_dir=frames_dir, is_converted=is_converted,
@@ -286,7 +289,7 @@ def train_fishnet(data_filename: str, data_dir: str = 'raw_data', frames_dir: st
                      to_create_frames=True, to_create_bg_frames=True)
     train_path = 'augs_data.csv' if use_augs else 'train.csv'
     data_loaders = FishDataLoaders(frames_dir=frames_dir, train_path=train_path)
-    fishnet = FishNet(dataloaders=data_loaders, num_classes=data_loaders.num_classes)
+    fishnet = FishNet(dataloaders=data_loaders, num_classes=data_loaders.num_classes, n_trainable=trainable_layers)
     fishnet.train_model(num_epochs=num_epochs, learning_rate=learning_rate)
     if output_file:
         torch.save(fishnet.model, output_file)
@@ -296,6 +299,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # data arguments:
     parser.add_argument('-f', '--frames-dir', help='Frames Directory Name', default='frames')
+    parser.add_argument('-d', '--data-dir', help='Raw Data Directory Name', default='raw_data')
     parser.add_argument('--use-augs', help='Use augmentations when training', action='store_true')
     parser.add_argument('--is-converted', help='Using the converted videos', action='store_true')
     parser.add_argument('--data-types', help='Choose between using only the samples (2), only the background (1) '
@@ -318,4 +322,4 @@ if __name__ == '__main__':
     train_fishnet(data_filename=filename, data_dir=args.data_dir, frames_dir=args.frames_dir,
                   is_converted=args.is_converted, data_types=args.data_types, use_augs=args.use_augs,
                   num_augs=args.num_augs, num_epochs=args.num_epochs, output_file=args.output_file,
-                  learning_rate=args.lr)
+                  learning_rate=args.lr, trainable_layers=args.trainable_layers)

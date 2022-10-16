@@ -98,7 +98,7 @@ def create_frames(video_dir: str, frames_dir: str, tags: Dict[str, Dict], conver
             for point_id, point_data in video_dict.items():
                 mul = 0.5 if experiment_name in \
                              ['israchz091121A', 'israchz091121B', 'israchz091121C', 'isrtche081121B'] else 1
-                frames_num.append(point_data['frame'] * mul)
+                frames_num.append(int(point_data['frame'] * mul))
                 point_ids.append(point_id)
                 sp_codes.append(point_data['spcode'])
                 stages.append(point_data['stage'])

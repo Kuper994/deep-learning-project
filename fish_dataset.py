@@ -78,7 +78,7 @@ class FishDataset(Dataset):
 class FishDataLoaders:
     _MODES = ['train', 'val', 'test']
 
-    def __init__(self, frames_dir: str, train_path: str = 'train.csv', val_path: str = 'val.csv',
+    def __init__(self, frames_dir: str, train_path: str = 'train.csv', val_path: str = 'validate.csv',
                  test_path: str = 'test.csv'):
         train_df = pd.read_csv(os.path.join(frames_dir, train_path))
         val_df = pd.read_csv(os.path.join(frames_dir, val_path))
