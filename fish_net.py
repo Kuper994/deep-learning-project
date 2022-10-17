@@ -298,7 +298,7 @@ def train_fishnet(data_filename: str, data_dir: str = 'raw_data', frames_dir: st
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # data arguments:
-    parser.add_argument('-f', '--frames-dir', help='Frames Directory Name', default='frames')
+    parser.add_argument('-f', '--frames-dir', help='Frames Directory Name', required=True)
     parser.add_argument('-d', '--data-dir', help='Raw Data Directory Name', default='raw_data')
     parser.add_argument('--use-augs', help='Use augmentations when training', action='store_true')
     parser.add_argument('--is-converted', help='Using the converted videos', action='store_true')

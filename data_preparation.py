@@ -44,7 +44,7 @@ ORIGINAL_W = 2704
 LAST_FRAME_ORIG = 31785
 
 
-def save_frames_to_file(video_path: str, frames_dir: str, points_ids: List[str], frames: List[str],
+def save_frames_to_file(video_path: str, frames_dir: str, points_ids: List[str], frames: List[int],
                         fish_codes: List[str], fish_stages: List[str], bg: bool = False):
     vid_cap = skvideo.io.vreader(video_path)
     count = 0
