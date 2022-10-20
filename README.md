@@ -56,7 +56,7 @@ Alternatively, the model can be trained by calling `train_fishnet` function in `
 
 ### Testing the Model:
 
-This functionality cannot be executed via command line, and must be executed using the function `test_model` in `test_model.py`.
+Model testing is done through the `test_model` function inside `test_model.py`.
 
 **Function arguments**
 
