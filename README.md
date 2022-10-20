@@ -58,11 +58,13 @@ Alternatively, the model can be trained by calling `train_fishnet` function in `
 
 This functionality cannot be executed via command line, and must be executed using the function `test_model` in `test_model.py`.
 
-** function arguments**
+**Function arguments**
 
-`video_paths` - list - The video names on which to test the model.
-`model_path` - str - model file name
-`frames_dir` - str - frames directory
+`video_paths` - The video names on which to test the model.
+
+`model_path` - Model file name.
+
+`frames_dir` - Frames directory.
 
 ### Notebook example:
 
