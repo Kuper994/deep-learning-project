@@ -45,6 +45,8 @@ be under `DATA_DIR` location.
 
 `--data-dir` - The location of the raw videos, in case there is a need to create the frames.
 
+`--output-file` -  Specify model file name. If not specified, model will not be saved, default=None.
+
 `--is-converted` - if True, use converted (compressed) videos instead of HD videos.
 
 `--data-types` - Choose between using only the  fish labels (2), only the background (1) or using both (0), default is 0.
