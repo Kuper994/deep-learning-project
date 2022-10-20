@@ -2,7 +2,7 @@
 **FishNet is a neural-network model purposed to detect and classify fish in videos 
 taken in the Mediterranean sea.**
 
-### Notebook example
+### Notebook example:
 
 A running example to the different stages using python can be found in `FishNet.ipynb` file. 
 
