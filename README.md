@@ -2,9 +2,6 @@
 **FishNet is a neural-network model purposed to detect and classify fish in videos 
 taken in the Mediterranean sea.**
 
-### Notebook example:
-
-A running example to the different stages using python can be found in `FishNet.ipynb` file. 
 
 ### Preparing the Data:
 
@@ -59,6 +56,15 @@ Alternatively, the model can be trained by calling `train_fishnet` function in `
 
 ### Testing the Model:
 
-This functionality cannot be executed via command line, and must be using the function `test_model` in `test_model.py`.
-The videos in which the model needs to be tested on should be specified with `video_paths` variable.
+This functionality cannot be executed via command line, and must be executed using the function `test_model` in `test_model.py`.
+
+** function arguments**
+
+`video_paths` - list - The video names on which to test the model.
+`model_path` - str - model file name
+`frames_dir` - str - frames directory
+
+### Notebook example:
+
+A running example to the different stages using python can be found in `FishNet.ipynb` file. 
 
